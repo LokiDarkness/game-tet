@@ -19,16 +19,10 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS not allowed"));
-    }
-  },
-  methods: ["GET", "POST"],
+  origin: [
+    "http://localhost:5173",
+    "https://game-tet-2.onrender.com"
+  ],
   credentials: true
 }));
 
@@ -40,13 +34,14 @@ app.use(express.json());
 
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: [
+      "http://localhost:5173",
+      "https://game-tet-2.onrender.com"
+    ],
     methods: ["GET", "POST"],
     credentials: true
-  },
-  transports: ["websocket"] // force websocket for Render
+  }
 });
-
 /* =========================================
    GAME CORE
 ========================================= */
