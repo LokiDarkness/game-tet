@@ -9,51 +9,74 @@ const registerSocket = require("./core/SocketRouter");
 const app = express();
 const server = http.createServer(app);
 
-/* ================================
-   CORS CONFIG
-================================ */
+/* =========================================
+   CORS CONFIG (IMPORTANT)
+========================================= */
+
+const allowedOrigins = [
+  "http://localhost:5173",              // Dev
+  "https://game-tet-2.onrender.com"     // Frontend production
+];
 
 app.use(cors({
-  origin: [
-    "http://localhost:5173", // dev local
-    "https://your-frontend.onrender.com" // ⚠️ đổi thành domain frontend của bạn
-  ],
-  methods: ["GET", "POST"]
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed"));
+    }
+  },
+  methods: ["GET", "POST"],
+  credentials: true
 }));
 
 app.use(express.json());
 
-/* ================================
-   SOCKET CONFIG
-================================ */
+/* =========================================
+   SOCKET.IO CONFIG
+========================================= */
 
 const io = new Server(server, {
   cors: {
-    origin: [
-      "http://localhost:5173",
-      "https://game-tet-1.onrender.com/"
-    ],
-    methods: ["GET", "POST"]
-  }
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+  transports: ["websocket"] // force websocket for Render
 });
+
+/* =========================================
+   GAME CORE
+========================================= */
 
 const roomManager = new RoomManager();
 registerSocket(io, roomManager);
 
-/* ================================
+/* =========================================
    HEALTH CHECK ROUTE
-================================ */
+========================================= */
 
 app.get("/", (req, res) => {
-  res.send("Poker Platform Backend Running 🚀");
+  res.status(200).send("Poker Platform Backend Running 🚀");
 });
 
-/* ================================
+/* =========================================
+   ERROR HANDLER
+========================================= */
+
+app.use((err, req, res, next) => {
+  console.error("Server Error:", err.message);
+  res.status(500).json({ error: "Internal Server Error" });
+});
+
+/* =========================================
    START SERVER
-================================ */
+========================================= */
 
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
-  console.log("Server running on port", PORT);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
