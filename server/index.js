@@ -1,77 +1,41 @@
 const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
 const cors = require("cors");
 
-const RoomManager = require("./core/RoomManager");
-const registerSocket = require("./core/SocketRouter");
-
 const app = express();
-const server = http.createServer(app);
-
-/* =========================================
-   CORS CONFIG (IMPORTANT)
-========================================= */
-
-const allowedOrigins = [
-  "http://localhost:5173",              // Dev
-  "https://game-tet-2.onrender.com"     // Frontend production
-];
-
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://game-tet-2.onrender.com"
-  ],
-  credentials: true
-}));
-
-app.use(express.json());
-
-/* =========================================
-   SOCKET.IO CONFIG
-========================================= */
-
-const io = new Server(server, {
-  cors: {
-    origin: [
-      "http://localhost:5173",
-      "https://game-tet-2.onrender.com"
-    ],
-    methods: ["GET", "POST"],
-    credentials: true
-  }
-});
-/* =========================================
-   GAME CORE
-========================================= */
-
-const roomManager = new RoomManager();
-registerSocket(io, roomManager);
-
-/* =========================================
-   HEALTH CHECK ROUTE
-========================================= */
-
-app.get("/", (req, res) => {
-  res.status(200).send("Poker Platform Backend Running 🚀");
-});
-
-/* =========================================
-   ERROR HANDLER
-========================================= */
-
-app.use((err, req, res, next) => {
-  console.error("Server Error:", err.message);
-  res.status(500).json({ error: "Internal Server Error" });
-});
-
-/* =========================================
-   START SERVER
-========================================= */
-
 const PORT = process.env.PORT || 3000;
 
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+app.use(cors());
+app.use(express.json());
+
+// Test route
+app.get("/", (req, res) => {
+  res.json({ message: "Game Tet API is running 🚀" });
+});
+
+// Fake database RAM
+let leaderboard = [];
+
+// Save score
+app.post("/api/score", (req, res) => {
+  const { name, score } = req.body;
+
+  if (!name || score == null) {
+    return res.status(400).json({ error: "Missing name or score" });
+  }
+
+  leaderboard.push({ name, score });
+
+  leaderboard.sort((a, b) => b.score - a.score);
+  leaderboard = leaderboard.slice(0, 10);
+
+  res.json({ success: true, leaderboard });
+});
+
+// Get leaderboard
+app.get("/api/leaderboard", (req, res) => {
+  res.json(leaderboard);
+});
+
+app.listen(PORT, () => {
+  console.log("Server running on port " + PORT);
 });
