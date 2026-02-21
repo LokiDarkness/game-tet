@@ -1,4 +1,4 @@
-const pokerURL = "https://your-poker-service.onrender.com";
+const pokerURL = "https://poker-pggr.onrender.com";
 
 const statusEl = document.getElementById("pokerStatus");
 const loading = document.getElementById("loadingOverlay");

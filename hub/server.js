@@ -5,7 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 🔥 THAY URL NÀY
-const POKER_URL = "https://your-poker-service.onrender.com";
+const POKER_URL = "https://poker-pggr.onrender.com";
 
 app.use(express.static("public"));
 
